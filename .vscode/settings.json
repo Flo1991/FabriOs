@@ -1,0 +1,11 @@
+{
+    "cortex-debug.liveWatchRefreshRate": 1000,
+    //"cortex-debug.armToolchainPath.windows": "C:/Users/yourPathForWindowsDevelopment/gcc-arm-none-eabi-10.3-2021.10-win32/gcc-arm-none-eabi-10.3-2021.10/bin",
+    "cortex-debug.gdbPath": "gdb-multiarch",
+    "cortex-debug.variableUseNaturalFormat": false,
+    "diffEditor.useInlineViewWhenSpaceIsLimited": false,
+    "diffEditor.renderSideBySide": false,
+    "rust-analyzer.check.command": "clippy",
+    "debug.allowBreakpointsEverywhere": true,
+    "debug.disassemblyView.showSourceCode": false,
+}

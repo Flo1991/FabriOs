@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv6m-none-eabi/debug/FabriOs",
+            "name": "Debug FabriOs (OpenOCD)",
+            "preLaunchTask": "Build binary",
+            "svdFile": "${workspaceFolder}/STM32F0x1.svd",
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32f0x.cfg"
+            ],
+            "runToEntryPoint": "application_reset_handler",
+        }
+    ]
+}

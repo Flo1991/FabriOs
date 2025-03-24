@@ -1,0 +1,54 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Cargo build",
+            "type": "shell",
+            "command": "cargo",
+            "args": ["build"],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "Build binary",
+            "type": "shell",
+            "command": "arm-none-eabi-objcopy",
+            "args": [
+                "--output-target", "binary",
+                "./target/thumbv6m-none-eabi/debug/FabriOs",
+                "./target/thumbv6m-none-eabi/debug/FabriOs.bin"],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn": "Create Lst File"
+        },
+        {
+            "label": "Create Lst File",
+            "type": "shell",
+            "command": "arm-none-eabi-objdump --source --all-headers --demangle --line-numbers --wide ${workspaceFolder}/target/thumbv6m-none-eabi/debug/FabriOs > ${workspaceFolder}/target/thumbv6m-none-eabi/debug/FabriOs.lst",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "build",
+            },
+            "dependsOn": "Cargo print memory"
+        },
+        {
+            "label": "Cargo print memory",
+            "type": "shell",
+            "command": "cargo size --target thumbv6m-none-eabi --bin FabriOs",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "build",
+            "dependsOn": "Cargo build"
+        }
+    ]
+}

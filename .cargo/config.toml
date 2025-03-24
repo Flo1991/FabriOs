@@ -1,0 +1,6 @@
+[target.thumbv6m-none-eabi]
+#runner = "C:/yourPathForWindowsDevelopment/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-gdb.exe -q -x openocd.gdb"
+rustflags = ["-C", "link-arg=-TSTM32_F091RC.ld"]
+
+[build]
+target = "thumbv6m-none-eabi" 
