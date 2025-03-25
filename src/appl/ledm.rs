@@ -116,7 +116,7 @@ impl LedmData {
 // Functions
 //---------------------------------------------------------------------------------------------------------------------
 
-pub fn ledm_task() -> Result<bool, u32> {
+pub fn ledm_task() {
     ToutTimer::handle_repeat(TimerId::LedmBlinkTimer)
 }
 
@@ -135,4 +135,6 @@ pub fn ledm_blink_timer_callback() {
             idx += 1;
         }
     }
+
+    //in case of an error need to inform a failure manager here
 }

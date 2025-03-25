@@ -106,22 +106,19 @@ impl ToutTimer {
             }
         }
     }
-    pub fn handle_repeat(timer: TimerId) -> Result<bool, u32> {
+    pub fn handle_repeat(timer: TimerId) {
         unsafe {
             let idx: usize = timer as usize;
             if rte::RTE_D.swtimer_data.timers[idx].state == States::Run {
                 if rte::RTE_D.swtimer_data.timers[idx].current_val
                     >= rte::RTE_D.swtimer_data.timers[idx].end_val
                 {
+                    // the callback which is called here must inform the failure manager to handle failures
                     (rte::RTE_D.swtimer_data.timers[idx].callback)();
                     rte::RTE_D.swtimer_data.timers[idx].current_val = 0;
-                    Ok(true)
                 } else {
                     rte::RTE_D.swtimer_data.timers[idx].current_val += 1;
-                    Ok(false)
                 }
-            } else {
-                Ok(false)
             }
         }
     }
