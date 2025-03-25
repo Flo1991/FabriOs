@@ -221,6 +221,21 @@ pub union StackTypePid02 {
 //---------------------------------------------------------------------------------------------------------------------
 // Macros
 //---------------------------------------------------------------------------------------------------------------------
+macro_rules! process_wait_time_elapse_us {
+    ($WAIT_TIME_US:expr) => {
+        // here the internal macro begins; create a new scope to avoid duplication issues
+        {
+            let ref_time : Wrapping<u32> = get_timestamp_us();
+            let time_to_elapse: Wrapping<u32> = Wrapping($WAIT_TIME_US);
+
+            while !is_elapsed_us(ref_time, time_to_elapse) {
+                sched_yield();
+            }
+            
+        }
+  
+    };
+}
 
 //---------------------------------------------------------------------------------------------------------------------
 // Functions
@@ -300,22 +315,25 @@ pub fn sched_run() {
 }
 
 #[allow(dead_code)]
-fn get_timestamp_us(sched: &SchedData) -> Wrapping<u32> {
-    sched.scheduler_timestamp
+fn get_timestamp_us() -> Wrapping<u32> {
+    unsafe {
+        S_SCHED.scheduler_timestamp
+    }
 }
 
 #[allow(dead_code)]
-fn get_elapsed_us(sched: &SchedData, timestamp: Wrapping<u32>) -> Wrapping<u32> {
-    sched.scheduler_timestamp - timestamp
+fn get_elapsed_us(timestamp: Wrapping<u32>) -> Wrapping<u32> {
+    unsafe {
+        S_SCHED.scheduler_timestamp - timestamp
+    }
 }
 
 #[allow(dead_code)]
 fn is_elapsed_us(
-    sched: &SchedData,
     timestamp: Wrapping<u32>,
     time_to_elapse: Wrapping<u32>,
 ) -> bool {
-    sched.scheduler_timestamp - timestamp > time_to_elapse
+    unsafe {S_SCHED.scheduler_timestamp - timestamp > time_to_elapse}
 }
 
 fn get_task_sched_times(task_id: TaskID) {
@@ -576,6 +594,8 @@ fn proc_pid00() {
 
         sched_yield();
 
+        
+
         if val > 8 {
             val = 0;
         }
@@ -603,19 +623,9 @@ fn proc_pid01() {
             asm!(".rept 5  ; \r\n", "nop       ; \r\n", ".endr  ; \r\n");
         }
 
-        loop {
-            let res = ledm::ledm_task();
-            match res {
-                Ok(was_executed) => {
-                    if was_executed {
-                        break;
-                    } else {
-                        sched_yield();
-                    }
-                }
-                Err(error_number) => panic!(),
-            }
-        }
+        process_wait_time_elapse_us!(1000);
+        ledm::ledm_task();
+        process_wait_time_elapse_us!(1000);
 
         if val > 8 {
             val = 0;
