@@ -68,7 +68,64 @@ macro_rules! create_volatile {
     };
 }
 
+
+
+
+macro_rules! create_setters{
+    ([$($fnname:ident, $dtype:ty, $member:ident),+]) => {
+        $(
+            #[allow(dead_code)]
+            pub fn $fnname (&mut self, $member : $dtype) {
+            set_reg_bitmsk(&mut self.$member.0, $member.0);
+        })*
+    }
+}
+
+macro_rules! create_clears{
+    ([$($fnname:ident, $dtype:ty, $member:ident),+]) => {
+        $(
+            #[allow(dead_code)]
+            pub fn $fnname (&mut self, $member : $dtype) {
+            clr_reg_bitmsk(&mut self.$member.0, $member.0);
+        })*
+    }
+}
+
+macro_rules! create_getters{
+    ([$($fnname:ident, $dtype:ident, $member:ident),+]) => {
+        $(
+        #[allow(dead_code)]
+        pub fn $fnname (&self) -> $dtype {
+            $dtype(get_reg(&self.$member.0))
+        })*
+    }
+}
+
+macro_rules! create_regstruct{
+    ([$($dtype:ident),+]) => {
+        $(pub struct $dtype(u32);
+        impl $dtype{
+            #[allow(dead_code)]
+            pub const fn comb(vals : &[$dtype]) -> $dtype{
+                let mut buildval = 0;
+                let mut i = 0;
+                while i < vals.len()
+                {
+                    buildval |= vals[i].0;
+                    i += 1;
+                }
+                let retval: $dtype = $dtype(buildval);
+                retval
+            }
+        })*
+    }
+}
+
 pub(crate) use create_volatile;
+pub(crate) use create_setters;
+pub(crate) use create_clears;
+pub(crate) use create_getters;
+pub(crate) use create_regstruct;
 
 //---------------------------------------------------------------------------------------------------------------------
 // Functions
@@ -90,7 +147,7 @@ pub fn set_reg_bitmsk(register: &mut u32, bitmsk: u32) {
 ///
 /// clear the bit mask to the given u32 address which represents a
 /// register address; is unsafe due to hardware access
-pub fn clear_reg_bitmsk(register: &mut u32, bitmsk: u32) {
+pub fn clr_reg_bitmsk(register: &mut u32, bitmsk: u32) {
     unsafe {
         let mut regval = ptr::read_volatile(register);
         regval &= !(bitmsk);
@@ -133,6 +190,6 @@ pub fn set_reg(register: &mut u32, reg_val: u32) {
 ///
 /// get the value of the given register; is unsafe due to hardware access
 #[allow(dead_code)]
-pub fn get_reg(register: &mut u32) -> u32 {
+pub fn get_reg(register: &u32) -> u32 {
     unsafe { ptr::read_volatile(register) }
 }

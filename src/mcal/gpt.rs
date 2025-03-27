@@ -28,7 +28,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 use super::rcc::Rcc;
 use super::rcc::F_CPU_HZ;
-use crate::common::util::clear_reg_bitmsk;
+use crate::common::util::clr_reg_bitmsk;
 use crate::common::util::get_reg;
 use crate::common::util::set_reg;
 use crate::common::util::set_reg_bitmsk;
@@ -82,7 +82,7 @@ impl Timer6_7 {
     ///configure timer to run at F_CPU_HZ; so 1 count takes a time of 1 / F_CPU_HZ
     pub fn init(&mut self) {
         set_reg_bitmsk(&mut Rcc::inst().apb1rstr, 1 << 4);
-        clear_reg_bitmsk(&mut Rcc::inst().apb1rstr, 1 << 4);
+        clr_reg_bitmsk(&mut Rcc::inst().apb1rstr, 1 << 4);
 
         set_reg_bitmsk(&mut Rcc::inst().apb1enr, 1 << 4);
 
@@ -105,8 +105,8 @@ impl Timer6_7 {
         }
     }
 
-    pub fn get_cnt_value(&mut self) -> u32 {
-        get_reg(&mut self.cnt)
+    pub fn get_cnt_value(&self) -> u32 {
+        get_reg(&self.cnt)
     }
 
     pub fn reset_cnt_value(&mut self) {
