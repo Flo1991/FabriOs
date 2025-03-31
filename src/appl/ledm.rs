@@ -30,6 +30,7 @@ use crate::rte;
 use crate::servl::swtimer::TimerId;
 use crate::servl::swtimer::ToutTimer;
 use crate::mcal::gpio;
+use crate::mcal::gpio::Pin;
 
 //---------------------------------------------------------------------------------------------------------------------
 // Types
@@ -62,8 +63,7 @@ pub enum LedState {
 #[derive(Copy, Clone)]
 pub struct Led {
     state: LedState,
-    odr_adr: u32,
-    pinmask: u32,
+    pin: Pin,
 }
 #[derive(Copy, Clone)]
 pub struct LedmData {
@@ -71,23 +71,11 @@ pub struct LedmData {
 }
 
 impl LedmData {
-    //#[allow(dead_code)]
-    //pub fn config() -> Self {
-    //    Self {
-    //        leds: [Led {
-    //            state: LedState::BlinkOff,
-    //            odr_adr: GpioAB::inst_a().odr,
-    //            pinmask: 1 << 5,
-    //        }],
-    //    }
-    //}
-
     pub const fn init() -> Self {
         Self {
             leds: [Led {
                 state: LedState::BlinkOff,
-                odr_adr: 0x4800_0000,
-                pinmask: 1 << 5,
+                pin : Pin::A5,
             }],
         }
     }
@@ -115,7 +103,27 @@ impl LedmData {
 //---------------------------------------------------------------------------------------------------------------------
 
 pub fn ledm_task() {
-    ToutTimer::handle_repeat(TimerId::LedmBlinkTimer)
+    ToutTimer::handle_repeat(TimerId::LedmBlinkTimer);
+    ledm_update();
+    
+}
+
+#[inline(always)]
+fn ledm_update() {
+    unsafe {
+        let mut idx: u32 = 0;
+        #[allow(static_mut_refs)]
+        while idx < rte::RTE_D.ledm_data.leds.len() as u32 {
+            if rte::RTE_D.ledm_data.leds[idx as usize].state == LedState::Off {
+                gpio::Pin::clr(rte::RTE_D.ledm_data.leds[idx as usize].pin);
+            } else if rte::RTE_D.ledm_data.leds[idx as usize].state == LedState::On {
+                gpio::Pin::set(rte::RTE_D.ledm_data.leds[idx as usize].pin);
+            }
+            idx += 1;
+        }
+    }
+
+    //in case of an error need to inform a failure manager here
 }
 
 pub fn ledm_blink_timer_callback() {
@@ -124,10 +132,10 @@ pub fn ledm_blink_timer_callback() {
         #[allow(static_mut_refs)]
         while idx < rte::RTE_D.ledm_data.leds.len() as u32 {
             if rte::RTE_D.ledm_data.leds[idx as usize].state == LedState::BlinkOff {
-                gpio::Pin::clr(gpio::Pin::A5);
+                gpio::Pin::clr(rte::RTE_D.ledm_data.leds[idx as usize].pin);
                 rte::RTE_D.ledm_data.leds[idx as usize].state = LedState::BlinkOn;
             } else if rte::RTE_D.ledm_data.leds[idx as usize].state == LedState::BlinkOn {
-                gpio::Pin::set(gpio::Pin::A5);
+                gpio::Pin::set(rte::RTE_D.ledm_data.leds[idx as usize].pin);
                 rte::RTE_D.ledm_data.leds[idx as usize].state = LedState::BlinkOff;
             }
             idx += 1;

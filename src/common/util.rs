@@ -91,12 +91,22 @@ macro_rules! create_clears{
     }
 }
 
-macro_rules! create_getters{
+macro_rules! create_readers{
     ([$($fnname:ident, $dtype:ident, $member:ident),+]) => {
         $(
         #[allow(dead_code)]
         pub fn $fnname (&self) -> $dtype {
             $dtype(get_reg(&self.$member.0))
+        })*
+    }
+}
+
+macro_rules! create_writers{
+    ([$($fnname:ident, $dtype:ty, $member:ident),+]) => {
+        $(
+            #[allow(dead_code)]
+            pub fn $fnname (&mut self, $member : $dtype) {
+                set_reg(&mut self.$member.0, $member.0);
         })*
     }
 }
@@ -124,7 +134,8 @@ macro_rules! create_regstruct{
 pub(crate) use create_volatile;
 pub(crate) use create_setters;
 pub(crate) use create_clears;
-pub(crate) use create_getters;
+pub(crate) use create_readers;
+pub(crate) use create_writers;
 pub(crate) use create_regstruct;
 
 //---------------------------------------------------------------------------------------------------------------------
