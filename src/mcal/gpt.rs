@@ -28,10 +28,10 @@
 //---------------------------------------------------------------------------------------------------------------------
 use super::rcc::Rcc;
 use super::rcc::F_CPU_HZ;
-use crate::common::util::clr_reg_bitmsk;
-use crate::common::util::get_reg;
-use crate::common::util::set_reg;
-use crate::common::util::set_reg_bitmsk;
+use crate::mcal::util::clr_reg_bitmsk;
+use crate::mcal::util::get_reg;
+use crate::mcal::util::set_reg;
+use crate::mcal::util::set_reg_bitmsk;
 
 //---------------------------------------------------------------------------------------------------------------------
 // Types

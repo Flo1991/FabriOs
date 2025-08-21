@@ -26,7 +26,6 @@
 //---------------------------------------------------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------------------------------------------------
-use core::ptr;
 
 //---------------------------------------------------------------------------------------------------------------------
 // Types
@@ -68,139 +67,8 @@ macro_rules! create_volatile {
     };
 }
 
-
-
-
-macro_rules! create_setters{
-    ([$($fnname:ident, $dtype:ty, $member:ident),+]) => {
-        $(
-            #[allow(dead_code)]
-            pub fn $fnname (&mut self, $member : $dtype) {
-            set_reg_bitmsk(&mut self.$member.0, $member.0);
-        })*
-    }
-}
-
-macro_rules! create_clears{
-    ([$($fnname:ident, $dtype:ty, $member:ident),+]) => {
-        $(
-            #[allow(dead_code)]
-            pub fn $fnname (&mut self, $member : $dtype) {
-            clr_reg_bitmsk(&mut self.$member.0, $member.0);
-        })*
-    }
-}
-
-macro_rules! create_readers{
-    ([$($fnname:ident, $dtype:ident, $member:ident),+]) => {
-        $(
-        #[allow(dead_code)]
-        pub fn $fnname (&self) -> $dtype {
-            $dtype(get_reg(&self.$member.0))
-        })*
-    }
-}
-
-macro_rules! create_writers{
-    ([$($fnname:ident, $dtype:ty, $member:ident),+]) => {
-        $(
-            #[allow(dead_code)]
-            pub fn $fnname (&mut self, $member : $dtype) {
-                set_reg(&mut self.$member.0, $member.0);
-        })*
-    }
-}
-
-macro_rules! create_regstruct{
-    ([$($dtype:ident),+]) => {
-        $(pub struct $dtype(u32);
-        impl $dtype{
-            #[allow(dead_code)]
-            pub const fn comb(vals : &[$dtype]) -> $dtype{
-                let mut buildval = 0;
-                let mut i = 0;
-                while i < vals.len()
-                {
-                    buildval |= vals[i].0;
-                    i += 1;
-                }
-                let retval: $dtype = $dtype(buildval);
-                retval
-            }
-        })*
-    }
-}
-
 pub(crate) use create_volatile;
-pub(crate) use create_setters;
-pub(crate) use create_clears;
-pub(crate) use create_readers;
-pub(crate) use create_writers;
-pub(crate) use create_regstruct;
 
 //---------------------------------------------------------------------------------------------------------------------
 // Functions
 //---------------------------------------------------------------------------------------------------------------------
-
-/// # Safety
-///
-/// set the bit mask to the given u32 address which represents a
-/// register address; is unsafe due to hardware access
-pub fn set_reg_bitmsk(register: &mut u32, bitmsk: u32) {
-    unsafe {
-        let mut regval = ptr::read_volatile(register);
-        regval |= bitmsk;
-        ptr::write_volatile(register, regval);
-    };
-}
-
-/// # Safety
-///
-/// clear the bit mask to the given u32 address which represents a
-/// register address; is unsafe due to hardware access
-pub fn clr_reg_bitmsk(register: &mut u32, bitmsk: u32) {
-    unsafe {
-        let mut regval = ptr::read_volatile(register);
-        regval &= !(bitmsk);
-        ptr::write_volatile(register, regval);
-    };
-}
-
-/// # Safety
-///
-/// modify register bits in a register with the modification mask that
-/// has to have 1s set at the bitpositions of the bits that should be
-/// modified; the actual value to write to those bits are in derived from reg_val
-/// example: if regval is 0b1011 and mod_mask is 0b1100, only bits 2 and 3
-/// are updated; bit 3 will get set, bit 2 will get cleared:
-/// is unsafe due to hardware access
-#[allow(dead_code)]
-pub fn modify_reg_bits(register: &mut u32, mod_mask: u32, reg_val: u32) {
-    unsafe {
-        let mut regval = ptr::read_volatile(register);
-        /* only keep the bits to modify */
-        let del_msk: u32 = reg_val ^ mod_mask;
-        regval &= !(del_msk);
-        let set_msk: u32 = reg_val & mod_mask;
-        regval |= set_msk;
-        ptr::write_volatile(register, regval);
-    };
-}
-
-/// # Safety
-///
-/// set the value to the given register; is unsafe due to hardware access
-#[allow(dead_code)]
-pub fn set_reg(register: &mut u32, reg_val: u32) {
-    unsafe {
-        ptr::write_volatile(register, reg_val);
-    };
-}
-
-/// # Safety
-///
-/// get the value of the given register; is unsafe due to hardware access
-#[allow(dead_code)]
-pub fn get_reg(register: &u32) -> u32 {
-    unsafe { ptr::read_volatile(register) }
-}
