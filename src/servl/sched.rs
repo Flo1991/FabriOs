@@ -374,7 +374,6 @@ pub unsafe extern "C" fn change_context_internal(
     active_process_stack_addr: *mut u32,
     next_process_stack_addr: u32,
 ) {
-    unsafe {
         core::arch::naked_asm!(
                 /* Push all registers (not r13, because r13 is stackpointer and is saved in variable) */
                 "PUSH    {{r0}}\n",
@@ -448,7 +447,6 @@ pub unsafe extern "C" fn change_context_internal(
                 "BX      r14"
 
         );
-    }
 }
 
 #[inline(always)]
