@@ -368,15 +368,13 @@ fn change_context_process(active_process_stack_addr: *mut u32, next_process_stac
     }
 }
 
-#[unsafe(no_mangle)]
-#[inline(always)]
+#[unsafe(naked)]
 #[allow(unused_variables)]
 pub unsafe extern "C" fn change_context_internal(
     active_process_stack_addr: *mut u32,
     next_process_stack_addr: u32,
 ) {
-    unsafe {
-        asm!(
+        core::arch::naked_asm!(
                 /* Push all registers (not r13, because r13 is stackpointer and is saved in variable) */
                 "PUSH    {{r0}}\n",
                 "PUSH    {{r1}}\n",
@@ -446,13 +444,9 @@ pub unsafe extern "C" fn change_context_internal(
                 "POP {{r0}}   \n",
 
                 /* jump to matching lr */
-                "BX      r14",
-
-                in("r0") active_process_stack_addr,
-                in("r1") next_process_stack_addr,
+                "BX      r14"
 
         );
-    }
 }
 
 #[inline(always)]
