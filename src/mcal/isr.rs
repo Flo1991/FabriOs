@@ -186,7 +186,7 @@ pub static G_VECTOR_TABLE_UI32: [ISRVector; 48] = [
 /// This define is used for stack pattern initialization; the reserve is the number of bytes from the start of stack
 /// which will not be initialized to a default pattern; this must be done, because otherwise the init itself overwrites
 /// stack memory which is currently in use
-const STARTUP_STACK_RESERVE: usize = 128;
+const STARTUP_STACK_RESERVE: usize = 32;
 
 //---------------------------------------------------------------------------------------------------------------------
 // Enums
@@ -240,9 +240,15 @@ pub unsafe extern "C" fn application_reset_handler() -> ! {
 
     //setup data section
     let count: usize = &_data_size as *const usize as usize;
-    let load_addr: *const u8 = ptr::addr_of!(_data_loadaddr);
-    let sdata: *mut u8 = &raw mut _sdata;
-    ptr::copy_nonoverlapping(load_addr, sdata, count);
+    let mut load_addr: *const u8 = ptr::addr_of!(_data_loadaddr);
+    let mut sdata: *mut u8 = &raw mut _sdata;
+    let mut i = 0;
+    while i < count {
+        *sdata = *load_addr;
+        sdata = sdata.add(1);
+        load_addr = load_addr.add(1);
+        i += 1;
+    }
 
     //setup bss section
     let count: usize = &_bss_size as *const usize as usize;
@@ -250,7 +256,8 @@ pub unsafe extern "C" fn application_reset_handler() -> ! {
     ptr::write_bytes(sbss, 0, count);
 
     //setup stack area
-    let count: usize = &_stack_size as *const usize as usize - STARTUP_STACK_RESERVE;
+    //use saturating sub to avoid panic; it has been reviewed that no underflow can occur
+    let count: usize = (&_stack_size as *const usize as usize).saturating_sub(STARTUP_STACK_RESERVE);
     let estack: *mut u8 = &raw mut _estack;
     ptr::write_bytes(estack, 0xA8, count);
 

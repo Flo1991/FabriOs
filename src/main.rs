@@ -47,11 +47,11 @@ mod mcal;
 mod rte;
 mod servl;
 
-use common::util::set_reg_bitmsk;
-use mcal::gpio::GpioAB;
 use mcal::gpt::Timer6_7;
-use mcal::rcc::Rcc;
 use servl::sched;
+use crate::mcal::gpio;
+
+
 
 //---------------------------------------------------------------------------------------------------------------------
 // Types
@@ -99,7 +99,7 @@ fn delay_wait_us(delay: u32) {
 
 /// function to set the Led on
 fn app_set_led_on() {
-    set_reg_bitmsk(&mut GpioAB::inst_a().odr, 1 << 5);
+    gpio::Pin::set(gpio::Pin::A5);
 }
 
 //need to define a panic handler; will get here in case of panic; ends in infinity loop
@@ -112,12 +112,7 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 fn application_main() -> ! {
     let _x = 42;
 
-    //enable clock of  io port A peripheral instance
-    set_reg_bitmsk(&mut Rcc::inst().ahbenr, 1 << 17);
-
-    //define gpioa pin 5 as output
-    set_reg_bitmsk(&mut GpioAB::inst_a().moder, 1 << (5 << 1));
-
+    mcal::gpio::init();
     Timer6_7::inst_6().init();
 
     crate::servl::sched::s_init();
